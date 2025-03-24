@@ -1,19 +1,24 @@
-#include <SFML/Graphics.hpp>
 #include <cmath>
 #include <iostream>
 #include "collfunc.cpp"
-
-
+#include <SFML/Graphics.hpp>
 int main() {
-    sf::RenderWindow window(sf::VideoMode(800, 600) , "Bouncing Ball");
+    sf::RenderWindow window(sf::VideoMode(800, 600) , "Bounding box collision");
     window.setFramerateLimit(90);
     sf::RectangleShape rect1(sf::Vector2f(200, 250));
     sf::RectangleShape rect2(sf::Vector2f(100, 150));
     rect2.setPosition(400,200);
     // Main loop
+    sf::Event event;
+
+    sf::Color color;
     while (window.isOpen()) {
         // Event handling
-
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                window.close();
+            }
+        }
 
         // Movement for rect 1
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
@@ -28,34 +33,13 @@ int main() {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
             rect1.setPosition(rect1.getPosition().x + 3, rect1.getPosition().y);
         }
-        // Check for collision
-       
-        float x_pos = rect1.getPosition().x;
-        float y_pos = rect1.getPosition().y;
-        float height = rect1.getSize().y;
-        float width = rect1.getSize().x;
-        float x1_pos = rect2.getPosition().x;
-        float y1_pos = rect2.getPosition().y;
-        float height1 = rect2.getSize().y;
-        float width1 = rect2.getSize().x;
-        //float x2_pos = rect2.getPosition().x;
-        //float y2_pos = rect2.getPosition().y;
+        sf::FloatRect bounds1 = rect1.getGlobalBounds();
+        sf::FloatRect bounds2 = rect2.getGlobalBounds();
 
         if (checkCollision(rect1,rect2)) {
-            if (x_pos < x1_pos&& y_pos < y1_pos + height1 && y_pos + height > y1_pos) {
-                rect1.setPosition(x_pos-1, y_pos);
-            }
-            if (x_pos > x1_pos&& y_pos < y1_pos + height1 && y_pos + height > y1_pos) {
-                rect1.setPosition(x_pos+1, y_pos);
-            }
-            else if (y_pos < y1_pos && x_pos < x1_pos + width1 && x_pos + width > x1_pos ){
-                rect1.setPosition(x_pos,y_pos - 1);
 
-            }
-            else if (y_pos > y1_pos && x_pos < x1_pos + width1 && x_pos + width > x1_pos) {
-                rect1.setPosition(x_pos, y_pos + 1);
-
-            }
+            sf::Color color;
+            resolveCollision(rect1,rect2);
         }
         // Rendering
         window.clear(sf::Color::Black);
