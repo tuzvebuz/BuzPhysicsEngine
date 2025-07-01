@@ -1,52 +1,131 @@
-#include <math.h>
 #include <SFML/Graphics.hpp>
+#include "particle.h"
+#include <memory>
+#include <random>
+#include <sstream>
 #include <iostream>
-#include "circle.h"
+#include <vector>
+float getRandomFloat(float min, float max) {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dist  (min, max);
+    return dist(gen);
+}
 
 
 
+int main(int argc, char const *argv[])
+{
+    // Window 800 by 800 pixels,
+    sf::RenderWindow window(sf::VideoMode(800,800), "Particle Simulation Test");
+    sf::Clock clock;
+    // Particle & physics maybe
+    // List of particles
+    std::vector<std::unique_ptr<Particle>> particles;
 
 
-int main() {
-
-
-    sf::RenderWindow window(sf::VideoMode(800,600), "Circle Collision");
-
-    window.setFramerateLimit(90);
-   // circle cirkel1(0, 200, 50.0f, 40.0f, sf::Color::Green);
-    // circle cirkel2(200, 50,35.0f,30.0f, sf::Color::Red);
-
-    float moveSpeed = 3.0f;
-    sf::Vector2f Velocity(0.0f, 0.0f);
-
-    //cirkel1.setPosition(window.getSize().x / 2, window.getSize().y / 2);
-
-    while (window.isOpen()) {
-
-
-
-/*
-        // Handle input
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-            cirkel1.y -= moveSpeed;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-            cirkel1.x -= moveSpeed;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-            cirkel1.y += moveSpeed;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-            cirkel1.x += moveSpeed;
-        }
-        window.draw(triangles);
-
-        // Update circle position
-*/
-
-        // Draw everything
-        window.clear();
-        window.display();
+    // Font setup
+    sf::Font font;
+    if (!font.loadFromFile("C:/Users/esadk/OneDrive/Desktop/Programming/BuzEngine/arial.ttf")) {
+        return -1;
     }
+    sf::Text text;
+    text.setFont(font);
+    std::string partic;
+    sf::Vertex line[2];
+
+
+    // FIrst manually created particle object
+
+    int amountParticles = 0;
+    // Main loop, if button pressed increment var with 1 and print it on screen
+    while (window.isOpen())
+    {
+
+
+        float deltaTime = clock.restart().asSeconds();
+
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            sf::Vector2i mousePos = sf::Mouse::getPosition();
+
+            if(event.type == sf::Event::Closed){
+                window.close();
+            }
+            if(sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+                float rx = getRandomFloat(1.f, 12.5f);
+                float ry = getRandomFloat(0.f, 800.f);
+                float rz = getRandomFloat(0.f, 800.f);
+
+
+                sf::Vector3f particleAtts(rx,ry,rz);
+                particles.push_back(std::make_unique<Particle>(
+                        ry, rz,rx
+                ));
+
+                amountParticles += 1;
+                std::string XPos = std::to_string(mousePos.x);
+
+                std::string partic = std::to_string(amountParticles);
+                text.setString(partic);
+            }
+
+        }
+        text.setCharacterSize(24);
+        window.clear();
+        window.draw(text);
+
+
+        // TEKENEN
+        for (const auto& p : particles) {
+            sf::CircleShape circle(p->radius);
+            circle.setPosition(p->x, p->y);
+            circle.setFillColor(sf::Color::White);
+            window.draw(circle);
+
+
+            // BEWEGING
+
+            //checkerClass.resolveCollision(particles);
+            // Based on Pos = veloctiy * deltaTime
+
+            p->x += p->vx * deltaTime;
+            p->y += p->vy * deltaTime;
+
+
+            if (p->x > 750) {
+                p->x = 750;
+            }
+            if (p->y > 600) {
+                p->y = 599;
+            }
+            if (p->x < 0) {
+                p->x = 0;
+
+            }
+            if (p->y < 0 ) {
+                p->y = 0;   
+            }
+
+
+            bool collision = p->checkCollision(particles);
+            if (collision) {
+                // COLLISION HANDLEING ?
+                // Get the old pos and set them there
+
+                std::cout << "Collision";
+
+            }
+        }
+        /*for (size_t i = 0; i < particles.size(); i++) {
+            for (size_t j = i + 1; j < particles.size() + 1; j++) {
+
+            }
+        }*/
+        window.display();
+
+    }
+
     return 0;
 }
